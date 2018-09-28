@@ -1,10 +1,21 @@
 import sys
 
+
 class UnaryInclusive:
 
     def __init__(self, item, bags):
         self.item = item
         self.bags = bags
+
+    def is_permissible(self, solution):
+        for a_bag in solution:
+            if self.item in a_bag:
+                if a_bag[0] in self.bags:
+                    return True
+                else:
+                    return False
+
+        return True
 
     def is_final_permissible(self, solution):
 
@@ -41,6 +52,16 @@ class UnaryExclusive:
         self.item = item
         self.bags = bags
 
+    def is_permissible(self, solution):
+        for a_bag in solution:
+            if self.item in a_bag:
+                if a_bag[0] in self.bags:
+                    return False
+                else:
+                    return True
+
+        return True
+
     def is_final_permissible(self, solution):
 
         for a_bag in solution:
@@ -58,6 +79,17 @@ class BinaryEquals:
     def __init__(self, items):
         self.items = items
 
+    def is_permissible(self, solution):
+
+        for a_bag in solution:
+            if self.items[0] in a_bag:
+                if self.items[1] in a_bag:
+                    return True
+                else:
+                    return False
+
+        return True
+
     def is_final_permissible(self, solution):
 
         for a_bag in solution:
@@ -74,6 +106,16 @@ class BinaryNotEquals:
 
     def __init__(self, items):
         self.items = items
+
+    def is_permissible(self, solution):
+        for a_bag in solution:
+            if self.items[0] in a_bag:
+                if self.items[1] in a_bag:
+                    return False
+                else:
+                    return True
+
+        return True
 
     def is_final_permissible(self, solution):
         for a_bag in solution:
@@ -131,14 +173,13 @@ class WeightLimit:
 
 itemWeights = [0] * 26
 bagSizes = [0] * 26
-#initialize fitting limit to be able to hold as much as they want
+# initialize fitting limit to be able to hold as much as they want
 fittingLimit = FittingLimit(0, 26)
 unaryInclusives = []
 unaryExclusives = []
 binaryEquals = []
 binaryNotEquals = []
 mutualInclusive = []
-
 
 with open(sys.argv[1], "r") as f:
     count = 0
@@ -147,22 +188,22 @@ with open(sys.argv[1], "r") as f:
             count += 1
         else:
             temp = line.split()
-            #check count value and assign values
+            # check count value and assign values
             if count == 1:
-                #variables
-                #use ascii value as index to array
+                # variables
+                # use ascii value as index to array
                 index = ord(temp[0]) - 65
                 itemWeights[index] = temp[1]
-            if count == 2:
-                #bag values
+            elif count == 2:
+                # bag values
                 # use ascii value as index to array
                 index = ord(temp[0]) - 97
                 bagSizes[index] = temp[1]
-            if count == 3:
-                #fitting limits
+            elif count == 3:
+                # fitting limits
                 fittingLimit = FittingLimit(temp[0], temp[1])
-            if count == 4:
-                #unary inclusive
+            elif count == 4:
+                # unary inclusive
                 tempItems = []
                 first = True
                 for t in temp:
@@ -172,8 +213,8 @@ with open(sys.argv[1], "r") as f:
                     else:
                         tempItems.append(t)
                 unaryInclusives.append(UnaryInclusive(bag, tempItems))
-            if count == 5:
-                #unary exclusive
+            elif count == 5:
+                # unary exclusive
                 tempItems = []
                 first = True
                 for t in temp:
@@ -183,12 +224,12 @@ with open(sys.argv[1], "r") as f:
                     else:
                         tempItems.append(t)
                 unaryExclusives.append(UnaryExclusive(bag, tempItems))
-            if count == 6:
-                #binary equals
+            elif count == 6:
+                # binary equals
                 binaryEquals.append(BinaryEquals([temp[0], temp[1]]))
-            if count == 7:
-                #binary does not equal
+            elif count == 7:
+                # binary does not equal
                 binaryNotEquals.append(BinaryNotEquals([temp[0], temp[1]]))
-            if count == 8:
-                #mutual inclusive
+            elif count == 8:
+                # mutual inclusive
                 mutualInclusive.append(MutualInclusive([temp[0], temp[1]], [temp[2], temp[3]]))
