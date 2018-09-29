@@ -171,8 +171,22 @@ class WeightLimit:
         pass
 
 
-itemWeights = [0] * 26
-bagSizes = [0] * 26
+class Item:
+
+    def __init__(self, item, weight):
+        self.item = item
+        self.weight = weight
+
+
+class Bag:
+
+    def __init__(self, letter, capacity):
+        self.letter = letter
+        self.capacity = capacity
+
+
+items = []
+bags = []
 # initialize fitting limit to be able to hold as much as they want
 fittingLimit = FittingLimit(0, 26)
 unaryInclusives = []
@@ -181,6 +195,7 @@ binaryEquals = []
 binaryNotEquals = []
 mutualInclusive = []
 
+#parsing through input file and assigning all inital values
 with open(sys.argv[1], "r") as f:
     count = 0
     for line in f:
@@ -190,20 +205,16 @@ with open(sys.argv[1], "r") as f:
             temp = line.split()
             # check count value and assign values
             if count == 1:
-                # variables
-                # use ascii value as index to array
-                index = ord(temp[0]) - 65
-                itemWeights[index] = temp[1]
+                #variables
+                items.append(Item(temp[0], temp[1]))
             elif count == 2:
-                # bag values
-                # use ascii value as index to array
-                index = ord(temp[0]) - 97
-                bagSizes[index] = temp[1]
+                #bag values
+                bags.append(Bag(temp[0], temp[1]))
             elif count == 3:
-                # fitting limits
+                #fitting limits
                 fittingLimit = FittingLimit(temp[0], temp[1])
             elif count == 4:
-                # unary inclusive
+                #unary inclusive
                 tempItems = []
                 first = True
                 for t in temp:
@@ -214,7 +225,7 @@ with open(sys.argv[1], "r") as f:
                         tempItems.append(t)
                 unaryInclusives.append(UnaryInclusive(bag, tempItems))
             elif count == 5:
-                # unary exclusive
+                #unary exclusive
                 tempItems = []
                 first = True
                 for t in temp:
@@ -225,11 +236,11 @@ with open(sys.argv[1], "r") as f:
                         tempItems.append(t)
                 unaryExclusives.append(UnaryExclusive(bag, tempItems))
             elif count == 6:
-                # binary equals
+                #binary equals
                 binaryEquals.append(BinaryEquals([temp[0], temp[1]]))
             elif count == 7:
-                # binary does not equal
+                #binary does not equal
                 binaryNotEquals.append(BinaryNotEquals([temp[0], temp[1]]))
             elif count == 8:
-                # mutual inclusive
+                #mutual inclusive
                 mutualInclusive.append(MutualInclusive([temp[0], temp[1]], [temp[2], temp[3]]))
