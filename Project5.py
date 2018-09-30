@@ -1,4 +1,5 @@
 import sys
+import collections
 
 
 class UnaryInclusive:
@@ -94,7 +95,16 @@ class BinaryEqual:
                 if self.items[1] in a_bag:
                     return True
                 else:
-                    return False
+                    for s_bag in solution:
+                        if self.items[1] in s_bag:
+                            return False
+            if self.items[1] in a_bag:
+                if self.items[0] in a_bag:
+                    return True
+                else:
+                    for s_bag in solution:
+                        if self.items[0] in s_bag:
+                            return False
 
         return True
 
@@ -116,12 +126,22 @@ class BinaryNotEqual:
         self.items = items
 
     def is_permissible(self, solution):
+
         for a_bag in solution:
             if self.items[0] in a_bag:
                 if self.items[1] in a_bag:
                     return False
                 else:
-                    return True
+                    for s_bag in solution:
+                        if self.items[1] in s_bag:
+                            return True
+            if self.items[1] in a_bag:
+                if self.items[0] in a_bag:
+                    return False
+                else:
+                    for s_bag in solution:
+                        if self.items[0] in s_bag:
+                            return True
 
         return True
 
@@ -142,7 +162,33 @@ class MutualInclusive:
         self.items = items
         self.bags = bags
 
-    def is_permissible(self):
+    def is_permissible(self, solution):
+        for f_bag in solution:
+            opp_i = 0
+            opp_j = 0
+            for i in range(0, 2):
+                if self.items[i] in f_bag:
+                    if i == 1:
+                        opp_i = 0
+                    else:
+                        opp_i = 1
+
+                    for j in range(0, 2):
+                        if self.bags[j] in f_bag:
+                            if j == 1:
+                                opp_j = 0
+                            else:
+                                opp_j = 1
+
+                            for a_s_bas in solution:
+                                if self.items[opp_i] in a_s_bas:
+                                    if self.bags[opp_j] in a_s_bas:
+                                        return True
+                                    else:
+                                        return False
+
+                            return True
+
         return True
 
     def is_final_permissible(self, solution):
@@ -156,18 +202,18 @@ class MutualInclusive:
                         opp_i = 1
 
                     for j in range(0, 1):
-                        if self.bags[j] == a_f_bag[0]:
+                        if self.bags[j] in a_f_bag:
                             if j == 1:
                                 opp_j = 0
                             else:
                                 opp_j = 1
 
-                                for a_s_bas in solution:
-                                    if self.items[opp_i] in a_s_bas:
-                                        if self.bags[opp_j] == a_s_bas[0]:
-                                            return True
-                                        else:
-                                            return False
+                            for a_s_bas in solution:
+                                if self.items[opp_i] in a_s_bas:
+                                    if self.bags[opp_j] in a_s_bas:
+                                        return True
+                                    else:
+                                        return False
 
         return True
 
@@ -213,7 +259,7 @@ class Bag:
         for an_item in self.items:
             check_weight += an_item.weight
 
-        if (self.capacity * .9) <= check_weight <= self.capacity:
+        if (float(self.capacity) * .9) <= check_weight <= self.capacity:
             return True
         else:
             return False
@@ -256,28 +302,32 @@ def select_unassigned(fails, constraints, things, a_heuristic):
                     if not a_bag.is_permissible():
                         amount_constrained[counter] += 1
                     else:
-                        for a_constraint in constraints:
-                            if not a_constraint.is_permissible(temp_solution):
-                                amount_constrained[counter] += 1
-                                break
+                        for a_constraint_type in constraints:
+                            for a_constraint in a_constraint_type:
+                                if not a_constraint.is_permissible(temp_solution):
+                                    amount_constrained[counter] += 1
+                                    break
                     a_bag.remove_item(an_item)
+            else:
+                amount_constrained[counter] = -1
             counter += 1
 
         max_constraints = max(amount_constrained)
 
         # check if the item is totally constrained (can't be placed in any bag)
         # this would mean the item can never be placed so just stop trying
-        if max_constraints == len(things[0]):
-            return False
+        # if max_constraints == len(things[0]):
+        #     return False
 
-        selected_item = things[1][amount_constrained.index(max(amount_constrained))]
+        selected_item = things[1][amount_constrained.index(max_constraints)]
 
         # this is the degree heuristic for a tie break between choices
         for i in range(0, len(amount_constrained)):
             temp_highest_degree = 0
             if amount_constrained[i] == max_constraints:
-                if things[1][i].num_constraints >= temp_highest_degree:
+                if things[1][i].num_constraints > temp_highest_degree:
                     selected_item = things[1][i]
+                    temp_highest_degree = things[1][i].num_constraints
 
         # put it in the first bag that it can go into
         for a_bag in things[0]:
@@ -288,16 +338,22 @@ def select_unassigned(fails, constraints, things, a_heuristic):
                 a_bag.remove_item(selected_item)
                 is_placed = False
             else:
-                for a_constraint in constraints:
-                    if not a_constraint.is_permissible(temp_solution):
-                        a_bag.remove_item(selected_item)
-                        is_placed = False
-                        break
+                for a_constraint_type in constraints:
+                    for a_constraint in a_constraint_type:
+                        if not a_constraint.is_permissible(temp_solution):
+                            a_bag.remove_item(selected_item)
+                            is_placed = False
+                            break
+            if check_been_here(fails, temp_solution):
+                a_bag.remove_item(selected_item)
+                is_placed = False
+
             if is_placed:
                 selected_item.selected = True
-                break
+                return [a_bag, selected_item]
 
-        return True
+        return False
+
 
     # using a Least constraing value choose the the correct item
     elif a_heuristic == "LCV":
@@ -308,13 +364,16 @@ def select_unassigned(fails, constraints, things, a_heuristic):
 
 # check if this solution has already occurred True if the board state happened
 def check_been_here(solutions, a_solution):
+    found_dup = False
     for temp_solution in solutions:
-        for i in range(0, len(solutions)):
-            for a_letter in temp_solution[i]:
-                if a_letter not in a_solution[i]:
-                    return False
+        found_diff = False
+        for a_bag in range(0, len(temp_solution)):
+            if not collections.Counter(temp_solution[a_bag]) == collections.Counter(a_solution[a_bag]):
+                found_diff = True
+        if not found_diff:
+            found_dup = True
 
-    return True
+    return found_dup
 
 
 # does the back tracking with a possible specific heuristic
@@ -324,10 +383,11 @@ def backtrack(fails, constraints, things, a_heuristic):
     assignment = make_solutions(things[0])
     satisfied = True
     # check constraints
-    for a_constraint in constraints:
-        if not a_constraint.is_final_permissible(assignment):
-            satisfied = False
-            break
+    for a_constraint_type in constraints:
+        for a_constraint in a_constraint_type:
+            if not a_constraint.is_final_permissible(assignment):
+                satisfied = False
+                break
 
     # check the bag weights
     for a_bag in things[0]:
@@ -335,28 +395,56 @@ def backtrack(fails, constraints, things, a_heuristic):
             satisfied = False
             break
 
+    all_items = True
+    num_not_selected = 0
     # check that all items are assigned to a bag
     for an_item in things[1]:
         if not an_item.selected:
+            num_not_selected += 1
+            all_items = False
             satisfied = False
-            break
 
+
+    if all_items and not satisfied:
+        return False
     if satisfied:
         return assignment
 
-    # select an unassigned item
-    is_assignment = select_unassigned(fails, constraints, things, a_heuristic)
-    # check if this is an answer we've already seen
+    print("printing assignment")
+    print(assignment)
+    is_assignment = False
 
-    if is_assignment:
-        return backtrack(fails, constraints, things, a_heuristic)
-    else:
-        fails.append(make_solutions(things[0]))
-        return False
+    for i in range(0, num_not_selected):
+        # select an unassigned item
+
+        is_assignment = select_unassigned(fails, constraints, things, a_heuristic)
+
+        if is_assignment:
+            # go deeper
+            temp_result = backtrack(fails, constraints, things, a_heuristic)
+            # if there is a result return it, if theres not get another assignment with the failed states in there now
+            if temp_result:
+                print(temp_result)
+                return temp_result
+            else:
+                print(fails)
+                is_assignment[0].remove_item(is_assignment[1])
+                is_assignment[1].selected = False
+        # no more possible assignments
+        else:
+            print("couldnt assign")
+            fails.append(make_solutions(things[0]))
+
+            return False
+
+    fails.append(make_solutions(things[0]))
+    print("printing fails")
+    print(fails)
+    return False
 
 
 def backtracking_search(uis, uexs, bes, bnes, mis, bags, items, a_heuristic):
-    constraints = [uis, uexs, bes, bnes, mis, bags, items]
+    constraints = [uis, uexs, bes, bnes, mis]
     things = [bags, items]
     return backtrack([], constraints, things, a_heuristic)
 
@@ -384,43 +472,46 @@ with open(sys.argv[1], "r") as f:
             # check count value and assign values
             if count == 1:
                 # variables
-                items.append(Item(temp_line[0], temp_line[1]))
+                items.append(Item(temp_line[0], int(temp_line[1])))
                 items_letter.append(temp_line[0])
             elif count == 2:
                 # bag values
-                bags.append(Bag(temp_line[0], temp_line[1]))
+                bags.append(Bag(temp_line[0], int(temp_line[1])))
                 bags_letter.append(temp_line[0])
             elif count == 3:
                 # fitting limits
                 fittingLimit = FittingLimit(temp_line[0], temp_line[1])
             elif count == 4:
                 # unary inclusive
-                temp_items = []
+                temp_bags = []
+                item = 'a'
                 first = True
                 for a_letter in temp_line:
                     if first:
-                        bag = a_letter
-                        first = False
-                    else:
-                        temp_items.append(a_letter)
-                        temp_item = items[items_letter.index(a_letter)]
+                        item = a_letter
+                        temp_item = items[items_letter.index(item)]
                         temp_item.num_constraints += 1
 
-                unary_inclusives.append(UnaryInclusive(bag, temp_items))
+                        first = False
+                    else:
+                        temp_bags.append(a_letter)
+
+                unary_inclusives.append(UnaryInclusive(item, temp_bags))
             elif count == 5:
                 # unary exclusive
-                temp_items = []
+                temp_bags = []
+                item = 'a'
                 first = True
                 for a_letter in temp_line:
                     if first:
-                        bag = a_letter
-                        first = False
-                    else:
-                        temp_items.append(a_letter)
+                        item = a_letter
                         temp_item = items[items_letter.index(a_letter)]
                         temp_item.num_constraints += 1
+                        first = False
+                    else:
+                        temp_bags.append(a_letter)
 
-                unary_exclusives.append(UnaryExclusive(bag, temp_items))
+                unary_exclusives.append(UnaryExclusive(item, temp_bags))
             elif count == 6:
                 # binary equals
                 binary_equals.append(BinaryEqual([temp_line[0], temp_line[1]]))
@@ -438,9 +529,16 @@ with open(sys.argv[1], "r") as f:
             elif count == 8:
                 # mutual inclusive
                 mutual_inclusives.append(MutualInclusive([temp_line[0], temp_line[1]], [temp_line[2], temp_line[3]]))
-                item_one = items[items_letter.index(temp_line[2])]
-                item_two = items[items_letter.index(temp_line[3])]
+                item_one = items[items_letter.index(temp_line[0])]
+                item_two = items[items_letter.index(temp_line[1])]
                 item_one.num_constraints += 1
                 item_two.num_constraints += 1
 
 # start placing things in bags
+result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals, mutual_inclusives,
+                             bags, items, "MRV")
+
+if result:
+    print(result)
+else:
+    print("there is no possible solution for this problem")
