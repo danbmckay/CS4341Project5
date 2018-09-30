@@ -236,6 +236,22 @@ class Item:
         self.selected = False
         self.num_constraints = 0
 
+    # return the possible bags this item can go into
+    def possible_values(self, constraints, bags):
+        values = []
+        for a_bag in bags:
+            a_bag.items.append(self)
+            temp_solution = make_solutions(bags)
+            if not a_bag.is_permissible():
+                pass
+            else:
+                for a_constraint in constraints:
+                    if not a_constraint.is_permissible(temp_solution):
+                        values.append(a_bag.letter)
+                        break
+            a_bag.remove_item(self)
+        return values
+
 
 class Bag:
 
@@ -278,11 +294,6 @@ def make_solutions(the_bags):
         my_bags.append(temp_list)
 
     return my_bags
-
-
-# returns true if placed
-def try_putting_item_in_bag(bags, an_item):
-    pass
 
 
 # adds an item to a bag returns if it was successful or there was no way to add an item
@@ -356,8 +367,33 @@ def select_unassigned(fails, constraints, things, a_heuristic):
 
 
     # using a Least constraing value choose the the correct item
+    # pick first item that is unassigned
     elif a_heuristic == "LCV":
-        pass
+        for an_item in things[1]:
+            if not an_item.selected:
+                # maximum number of remaining values and index of where it occurred
+                max_rem_vals, max_index, temp_rem_vals = 0, 'a', 0
+                # try putting item in all bags, see which bag rules out fewest choices for others
+                for a_bag in things[0]:
+                    a_bag.items.append(an_item)
+                    if a_bag.is_permissible():
+                        # check remaining values on other items
+                        for item in things[1]:
+                            remaining_vals = len(item.possible_values(constraints, things[0]))
+                            if remaining_vals != 0:
+                                temp_rem_vals += remaining_vals
+                            else:
+                                # don't want a solution with something with no vals left
+                                break
+                        if temp_rem_vals > max_rem_vals:
+                            max_rem_vals = temp_rem_vals
+                            max_index = a_bag.letter
+                    a_bag.remove_item(an_item)
+                # time to put item in bag
+                for a_bag in things[0]:
+                    if a_bag.letter == max_index:
+                        a_bag.append(an_item)
+                        return True
 
     return True
 
@@ -377,6 +413,10 @@ def check_been_here(solutions, a_solution):
 
 
 # does the back tracking with a possible specific heuristic
+# fails: solution sets that have failed
+# constraints: List of constraints
+# things: The list of bags and items in them
+# a_heuristic: whichever heuristic we are solving (min remaining value, least constrained value, etc.)
 def backtrack(fails, constraints, things, a_heuristic):
     # check if the assignment is complete
     # make the assignment from what we have in the bags currently
@@ -443,6 +483,13 @@ def backtrack(fails, constraints, things, a_heuristic):
     return False
 
 
+# Performs the backtracking search
+# uis, uexs: unary inclusive/exclusive constraints
+# bes, bnes: binary inclusive/exclusive constraints
+# mis: mutual inclusive constraints
+# bags: list of bags/capacity
+# items: list of items/weights
+# a_heuristic: the heuristic to perform with
 def backtracking_search(uis, uexs, bes, bnes, mis, bags, items, a_heuristic):
     constraints = [uis, uexs, bes, bnes, mis]
     things = [bags, items]
