@@ -239,17 +239,27 @@ class Item:
     # return the possible bags this item can go into
     def possible_values(self, constraints, bags):
         values = []
+        pass_count = 0
         for a_bag in bags:
             a_bag.items.append(self)
+            self.selected = True
             temp_solution = make_solutions(bags)
             if not a_bag.is_permissible():
                 pass
             else:
+                pass_count = 0
                 for a_constraint in constraints:
-                    if not a_constraint.is_permissible(temp_solution):
-                        values.append(a_bag.letter)
-                        break
+                    if a_constraint == []:
+                        pass_count += 1
+                    for const in a_constraint:
+                        if not const.is_permissible(temp_solution):
+                            break
+                        pass_count += 1
             a_bag.remove_item(self)
+            self.selected = False
+            if pass_count == 5:
+                # this means that there are no constraints
+                values.append(a_bag.letter)
         return values
 
 
@@ -365,37 +375,62 @@ def select_unassigned(fails, constraints, things, a_heuristic):
 
         return False
 
-
     # using a Least constraing value choose the the correct item
     # pick first item that is unassigned
     elif a_heuristic == "LCV":
         for an_item in things[1]:
             if not an_item.selected:
-                # maximum number of remaining values and index of where it occurred
-                max_rem_vals, max_index, temp_rem_vals = 0, 'a', 0
-                # try putting item in all bags, see which bag rules out fewest choices for others
-                for a_bag in things[0]:
-                    a_bag.items.append(an_item)
-                    if a_bag.is_permissible():
-                        # check remaining values on other items
-                        for item in things[1]:
-                            remaining_vals = len(item.possible_values(constraints, things[0]))
-                            if remaining_vals != 0:
-                                temp_rem_vals += remaining_vals
-                            else:
-                                # don't want a solution with something with no vals left
-                                break
-                        if temp_rem_vals > max_rem_vals:
-                            max_rem_vals = temp_rem_vals
-                            max_index = a_bag.letter
-                    a_bag.remove_item(an_item)
-                # time to put item in bag
-                for a_bag in things[0]:
-                    if a_bag.letter == max_index:
-                        a_bag.append(an_item)
-                        return True
+                # put the first item not selected in a bag
+                return LCV(an_item, things[1], things[0], constraints)
+    return False
 
-    return True
+
+# Least constraining value heuristic function
+# item: The item to be added to a bag
+# all_items: all of the items in the problem
+# bags: all of the bags in the problem
+# constraints: all of the constraints
+def LCV(item, all_items, bags, constraints):
+    # maximum number of remaining values and index of where it occurred, setting placeholders for now
+    max_rem_vals, max_index, temp_rem_vals = 0, 'b', 0
+    # try putting item in all bags, see which bag rules out fewest choices for others
+    for a_bag in bags:
+        a_bag.items.append(item)
+        item.selected = True
+        constraint_satisfied = True
+        temp_solution = make_solutions(bags)
+        # check to make sure this doesnt violate any constraints
+        for a_constraint_type in constraints:
+            for a_constraint in a_constraint_type:
+                if not a_constraint.is_permissible(temp_solution):
+                    constraint_satisfied = False
+
+        if a_bag.is_permissible() and constraint_satisfied:
+            # check remaining values on other items
+            for i in all_items:
+                if not i.selected:
+                    remaining_vals = len(i.possible_values(constraints, bags))
+                    if remaining_vals != 0:
+                        temp_rem_vals += remaining_vals
+                    else:
+                        # don't want a solution with something with no vals left
+                        break
+                elif i.letter == item.letter:
+                    # this is needed
+                    temp_rem_vals += 1
+            if temp_rem_vals > max_rem_vals:
+                # overwrite the old max remaining values
+                max_rem_vals = temp_rem_vals
+                max_index = a_bag.letter
+        a_bag.remove_item(item)
+        item.selected = False
+    # time to put item in bag
+    for a_bag in bags:
+        if a_bag.letter == max_index:
+            a_bag.items.append(item)
+            item.selected = True
+            return [a_bag, item]
+    return False
 
 
 # check if this solution has already occurred True if the board state happened
@@ -444,7 +479,6 @@ def backtrack(fails, constraints, things, a_heuristic):
             all_items = False
             satisfied = False
 
-
     if all_items and not satisfied:
         return False
     if satisfied:
@@ -467,7 +501,7 @@ def backtrack(fails, constraints, things, a_heuristic):
                 print(temp_result)
                 return temp_result
             else:
-                print(fails)
+                # print(fails)
                 is_assignment[0].remove_item(is_assignment[1])
                 is_assignment[1].selected = False
         # no more possible assignments
@@ -478,8 +512,8 @@ def backtrack(fails, constraints, things, a_heuristic):
             return False
 
     fails.append(make_solutions(things[0]))
-    print("printing fails")
-    print(fails)
+    # print("printing fails")
+    # print(fails)
     return False
 
 
@@ -583,7 +617,7 @@ with open(sys.argv[1], "r") as f:
 
 # start placing things in bags
 result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals, mutual_inclusives,
-                             bags, items, "MRV")
+                             bags, items, "LCV")
 
 if result:
     print(result)
