@@ -285,7 +285,7 @@ class Bag:
         for an_item in self.items:
             check_weight += an_item.weight
 
-        if (float(self.capacity) * .9) <= check_weight <= self.capacity:
+        if (int((self.capacity) * .9)) <= check_weight <= self.capacity:
             return True
         else:
             return False
@@ -580,7 +580,7 @@ def print_results(bags):
         print(first_line)
         second_line = "number of items: " + str(len(a_bag.items))
         print(second_line)
-        third_line = "total weight: " + str(a_bag.capacity) + "/" + str(sum_of_items)
+        third_line = "total weight: " + str(sum_of_items) + "/" + str(a_bag.capacity)
         print(third_line)
         fourth_line = "wasted capacity: " + str(a_bag.capacity - sum_of_items)
         print(fourth_line)
@@ -696,6 +696,20 @@ mrv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equa
 MRV_file.close()
 
 if mrv_result:
+    print_results(bags)
+else:
+    print("there is no possible solution for this problem")
+
+reset(bags, items)
+print("working on LSV_heuristic with degree heuristic")
+LSV_file = open("LSV_heuristic.txt", "w")
+
+lsv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals,
+                                 mutual_inclusives,
+                                 bags, items, "LSV", LSV_file)
+LSV_file.close()
+
+if lsv_result:
     print_results(bags)
 else:
     print("there is no possible solution for this problem")
