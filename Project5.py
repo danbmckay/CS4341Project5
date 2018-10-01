@@ -694,7 +694,7 @@ mrv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equa
                                  mutual_inclusives,
                                  bags, items, "MRV", MRV_file)
 MRV_file.close()
-
+#a
 if mrv_result:
     print_results(bags)
 else:
