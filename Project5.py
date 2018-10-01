@@ -1,5 +1,6 @@
 import sys
 import collections
+import time
 
 
 class UnaryInclusive:
@@ -697,12 +698,16 @@ with open(sys.argv[1], "r") as f:
 # start placing things in bags
 just_backtrack_file = open("just_backtracking.txt", "w")
 print("working on normal backtracking with nothing")
+normal_timer = time.perf_counter()
 result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals, mutual_inclusives,
                              bags, items, "none", just_backtrack_file)
+normal_timer_end = time.perf_counter()
+
 just_backtrack_file.close()
 
 
 if result:
+    print("with no heuristic it was solved in " + str(normal_timer_end - normal_timer) + "seconds")
     print_results(bags)
     print("Consistancy checks: ", consistancy_checks)
 else:
@@ -712,29 +717,35 @@ reset(bags, items)
 consistancy_checks = 0
 print("working on MRV_heuristic with degree heuristic")
 MRV_file = open("MRV_heuristic.txt", "w")
-
+normal_timer = time.perf_counter()
 mrv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals,
                                  mutual_inclusives,
                                  bags, items, "MRV", MRV_file)
+normal_timer_end = time.perf_counter()
 MRV_file.close()
 #a
 if mrv_result:
+    print("with the MRV heuristic it was solved in " + str(normal_timer_end - normal_timer) + "seconds")
     print_results(bags)
     print("Consistancy checks: ", consistancy_checks)
 else:
     print("there is no possible solution for this problem")
 
 reset(bags, items)
+
 consistancy_checks = 0
 print("working on LCV_heuristic with degree heuristic")
 LCV_file = open("LCV_heuristic.txt", "w")
-
+normal_timer = time.perf_counter()
 lcv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals,
                                  mutual_inclusives,
                                  bags, items, "LCV", LCV_file)
+normal_timer_end = time.perf_counter()
 LCV_file.close()
 
 if lcv_result:
+    print("with the LCV heuristic it was solved in " + str(normal_timer_end - normal_timer) + "seconds")
+
     print_results(bags)
     print("Consistancy checks: ", consistancy_checks)
 else:
