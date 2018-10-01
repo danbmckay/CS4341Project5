@@ -300,6 +300,7 @@ def make_solutions(the_bags):
 # checks for failed states
 def select_unassigned(fails, constraints, things, a_heuristic):
     # minimum remaining value heuristic
+    print(a_heuristic)
     if a_heuristic == "MRV":
         counter = 0
         # select the most constrained item
@@ -395,6 +396,36 @@ def select_unassigned(fails, constraints, things, a_heuristic):
                         a_bag.append(an_item)
                         return True
 
+    elif a_heuristic == "none":
+        selected_item = False
+        for an_item in things[1]:
+            if not an_item.selected:
+                selected_item = an_item
+
+        for a_bag in things[0]:
+            is_placed = True
+            a_bag.items.append(selected_item)
+            temp_solution = make_solutions(things[0])
+            if not a_bag.is_permissible():
+                a_bag.remove_item(selected_item)
+                is_placed = False
+            else:
+                for a_constraint_type in constraints:
+                    for a_constraint in a_constraint_type:
+                        if not a_constraint.is_permissible(temp_solution):
+                            a_bag.remove_item(selected_item)
+                            is_placed = False
+                            break
+            if check_been_here(fails, temp_solution):
+                a_bag.remove_item(selected_item)
+                is_placed = False
+
+            if is_placed:
+                selected_item.selected = True
+                return [a_bag, selected_item]
+
+        return False
+
     return True
 
 
@@ -417,7 +448,7 @@ def check_been_here(solutions, a_solution):
 # constraints: List of constraints
 # things: The list of bags and items in them
 # a_heuristic: whichever heuristic we are solving (min remaining value, least constrained value, etc.)
-def backtrack(fails, constraints, things, a_heuristic):
+def backtrack(fails, constraints, things, a_heuristic, a_file):
     # check if the assignment is complete
     # make the assignment from what we have in the bags currently
     assignment = make_solutions(things[0])
@@ -444,14 +475,11 @@ def backtrack(fails, constraints, things, a_heuristic):
             all_items = False
             satisfied = False
 
-
     if all_items and not satisfied:
         return False
     if satisfied:
         return assignment
 
-    print("printing assignment")
-    print(assignment)
     is_assignment = False
 
     for i in range(0, num_not_selected):
@@ -460,26 +488,33 @@ def backtrack(fails, constraints, things, a_heuristic):
         is_assignment = select_unassigned(fails, constraints, things, a_heuristic)
 
         if is_assignment:
+            temp_solution = make_solutions(things[0])
+            write_to_file = "the bag choosen is bag: " + str(
+                is_assignment[0].letter) + ", and the item is item: " + str(
+                is_assignment[1].letter) + "\n" + "so this is the current answer state: \n"
+            for a_bag in temp_solution:
+                write_to_file += "bag " + str(a_bag[0]) + " contains items: "
+                for j in range(1, len(a_bag)):
+                    write_to_file += str(a_bag[j]) + ", "
+                write_to_file += "\n"
+            write_to_file += "\n"
+            a_file.write(write_to_file)
             # go deeper
-            temp_result = backtrack(fails, constraints, things, a_heuristic)
+            temp_result = backtrack(fails, constraints, things, a_heuristic, a_file)
             # if there is a result return it, if theres not get another assignment with the failed states in there now
             if temp_result:
-                print(temp_result)
                 return temp_result
             else:
-                print(fails)
                 is_assignment[0].remove_item(is_assignment[1])
                 is_assignment[1].selected = False
         # no more possible assignments
         else:
-            print("couldnt assign")
             fails.append(make_solutions(things[0]))
 
             return False
 
     fails.append(make_solutions(things[0]))
-    print("printing fails")
-    print(fails)
+
     return False
 
 
@@ -490,10 +525,18 @@ def backtrack(fails, constraints, things, a_heuristic):
 # bags: list of bags/capacity
 # items: list of items/weights
 # a_heuristic: the heuristic to perform with
-def backtracking_search(uis, uexs, bes, bnes, mis, bags, items, a_heuristic):
+def backtracking_search(uis, uexs, bes, bnes, mis, bags, items, a_heuristic, a_file):
     constraints = [uis, uexs, bes, bnes, mis]
     things = [bags, items]
-    return backtrack([], constraints, things, a_heuristic)
+    return backtrack([], constraints, things, a_heuristic, a_file)
+
+
+def reset(bags, items):
+    for a_bag in bags:
+        a_bag.items = []
+
+    for an_item in items:
+        an_item.selected = False
 
 
 items = []
@@ -582,10 +625,25 @@ with open(sys.argv[1], "r") as f:
                 item_two.num_constraints += 1
 
 # start placing things in bags
+just_backtrack_file = open("just_backtracking.txt", "w")
 result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals, mutual_inclusives,
-                             bags, items, "MRV")
+                             bags, items, "none", just_backtrack_file)
+just_backtrack_file.close()
 
 if result:
     print(result)
+else:
+    print("there is no possible solution for this problem")
+
+reset(bags, items)
+MRV_file = open("MRV_heuristic.txt", "w")
+
+mrv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals,
+                                 mutual_inclusives,
+                                 bags, items, "MRV", MRV_file)
+MRV_file.close()
+
+if mrv_result:
+    print(mrv_result)
 else:
     print("there is no possible solution for this problem")
