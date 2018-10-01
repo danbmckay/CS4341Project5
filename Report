@@ -48,8 +48,16 @@ Backtracking(failures, constraints, bags, items, a_file):
         failures.append(current_state)
         return False
 
+A heuristic we implemented was the Least Constraining Values(LCV) heuristic. It picks the first item not already in a bag and tries to put it
+in a bag. It decides this by putting the item in one bag, and checking the total remaining possible values for each other item, and chooses
+the bag that maximizes the remaining possible values for the other items, assuming that solution is admissible. An item checks its remaining values
+by trying to put itself in every bag, and checking if putting itself in that bag doesn't violate the weight limit/ any constraints.
+
 Tests:
 
 Strengths/Weaknesses:
+The strengths of our project is that the Min Remaining Values heuristic works very well, and finds solutions to all the given inputs very quickly. However, a
+weakness of our program is the LCV heuristic. The heuristic works for most of the inputs, however for some of the more complex inputs it
+seems to get stuck and will eventually error out.
 
 Comparison with various algorithms:
