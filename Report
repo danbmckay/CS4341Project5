@@ -31,11 +31,22 @@ Backtracking(failures, constraints, bags, items, a_file):
     if met:
         an answer was found and returns it
     if its not met:
-        is_assigned = select_item(a_heuristic) // chooses some item to put in a bag based on the heuristic chosen updates bags and items
-        // select_item will return true if it placed an item or false if it failed to
-        is_assigned 
+        for(i, still_unassigned_items)
+            is_assigned = select_item(a_heuristic) // chooses some item to put in a bag based on the heuristic chosen updates bags and items
+            // select_item will return true if it placed an item or false if it failed to
+            if is_assigned:
+                some_result = BackTracking(failures, constraints, bags, items, a_file) // works so far try another layer
+                //some_result returns either the array of correct answers or False if it failed there
+                if some_result:
+                    return some_result
+                else:
+                    remove the item from the bag and try again with another one
+            else:
+                failures.append(current_state)
+                return False
 
-
+        failures.append(current_state)
+        return False
 
 Tests:
 
