@@ -300,7 +300,6 @@ def make_solutions(the_bags):
 # checks for failed states
 def select_unassigned(fails, constraints, things, a_heuristic):
     # minimum remaining value heuristic
-    print(a_heuristic)
     if a_heuristic == "MRV":
         counter = 0
         # select the most constrained item
@@ -538,6 +537,23 @@ def reset(bags, items):
     for an_item in items:
         an_item.selected = False
 
+def print_results(bags):
+    for a_bag in bags:
+        first_line = str(a_bag.letter) + " "
+        sum_of_items = 0
+        for an_item in a_bag.items:
+            sum_of_items += an_item.weight
+            first_line += str(an_item.letter) + " "
+        print(first_line)
+        second_line = "number of items: " + str(len(a_bag.items))
+        print(second_line)
+        third_line = "total weight: " + str(a_bag.capacity) + "/" + str(sum_of_items)
+        print(third_line)
+        fourth_line = "wasted capacity: " + str(a_bag.capacity - sum_of_items)
+        print(fourth_line)
+        print()
+
+
 
 items = []
 items_letter = []
@@ -626,16 +642,18 @@ with open(sys.argv[1], "r") as f:
 
 # start placing things in bags
 just_backtrack_file = open("just_backtracking.txt", "w")
+print("working on normal backtracking with nothing")
 result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals, mutual_inclusives,
                              bags, items, "none", just_backtrack_file)
 just_backtrack_file.close()
 
 if result:
-    print(result)
+    print_results(bags)
 else:
     print("there is no possible solution for this problem")
 
 reset(bags, items)
+print("working on MRV_heuristic with degree heuristic")
 MRV_file = open("MRV_heuristic.txt", "w")
 
 mrv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals,
@@ -644,6 +662,6 @@ mrv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equa
 MRV_file.close()
 
 if mrv_result:
-    print(mrv_result)
+    print_results(bags)
 else:
     print("there is no possible solution for this problem")
