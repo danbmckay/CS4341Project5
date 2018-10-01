@@ -383,6 +383,36 @@ def select_unassigned(fails, constraints, things, a_heuristic):
             if not an_item.selected:
                 # put the first item not selected in a bag
                 return LCV(an_item, things[1], things[0], constraints)
+
+    elif a_heuristic == "none":
+        selected_item = False
+        for an_item in things[1]:
+            if not an_item.selected:
+                selected_item = an_item
+
+        for a_bag in things[0]:
+            is_placed = True
+            a_bag.items.append(selected_item)
+            temp_solution = make_solutions(things[0])
+            if not a_bag.is_permissible():
+                a_bag.remove_item(selected_item)
+                is_placed = False
+            else:
+                for a_constraint_type in constraints:
+                    for a_constraint in a_constraint_type:
+                        if not a_constraint.is_permissible(temp_solution):
+                            a_bag.remove_item(selected_item)
+                            is_placed = False
+                            break
+            if check_been_here(fails, temp_solution):
+                a_bag.remove_item(selected_item)
+                is_placed = False
+
+            if is_placed:
+                selected_item.selected = True
+                return [a_bag, selected_item]
+
+        return False
     return False
 
 
