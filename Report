@@ -63,3 +63,21 @@ weakness of our program is the LCV heuristic. The heuristic works for most of th
 seems to get stuck and will eventually error out.
 
 Comparison with various algorithms:
+Total amount of consistancy checks:
+Input	Backtracking(uninformed)	MRT + degree	LCV
+Input1  3							4				3
+Input2	8							14				12
+Input7  15							31				38
+Input10 148							110				80
+Input17 67							90				67
+
+Total time taken to run the algorithms (seconds):
+Input	Backtracking(uninformed)	MRT + degree	LCV
+Input1  6.06 * 10^-5		        4.68 * 10^-5    3.65 * 10^-5
+Input2	0.00014                     0.00014         0.00014
+Input7  0.00011                     0.00018         0.00022
+Input10 0.00369                     0.00028         0.00075
+Input17 0.00055                     0.00025         0.00021
+
+Based on the given results, the MRT is the best algorithm. While backtracking tends to have less consistency checks, it is by far the slowest algorithm of the three.
+Comparing MRT and LCV, MRT has more consistency checks, but is faster most of the time, and by a greater margin than when LCV is faster.
