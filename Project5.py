@@ -9,6 +9,8 @@ class UnaryInclusive:
         self.bags = bags
 
     def is_permissible(self, solution):
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.item in a_bag:
                 if a_bag[0] in self.bags:
@@ -19,7 +21,8 @@ class UnaryInclusive:
         return True
 
     def is_final_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.item in a_bag:
                 if a_bag[0] in self.bags:
@@ -37,7 +40,8 @@ class FittingLimit:
         self.upper_bound = upper_bound
 
     def is_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if not len(a_bag) - 1 <= self.upper_bound:
                 return False
@@ -45,7 +49,8 @@ class FittingLimit:
         return True
 
     def is_final_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         is_valid = True
         for a_bag in solution:
             if not self.lower_bound <= len(a_bag) - 1 <= self.upper_bound:
@@ -62,6 +67,8 @@ class UnaryExclusive:
         self.bags = bags
 
     def is_permissible(self, solution):
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.item in a_bag:
                 if a_bag[0] in self.bags:
@@ -72,7 +79,8 @@ class UnaryExclusive:
         return True
 
     def is_final_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.item in a_bag:
                 if a_bag[0] in self.bags:
@@ -89,7 +97,8 @@ class BinaryEqual:
         self.items = items
 
     def is_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.items[0] in a_bag:
                 if self.items[1] in a_bag:
@@ -109,7 +118,8 @@ class BinaryEqual:
         return True
 
     def is_final_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.items[0] in a_bag:
                 if self.items[1] in a_bag:
@@ -126,7 +136,8 @@ class BinaryNotEqual:
         self.items = items
 
     def is_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.items[0] in a_bag:
                 if self.items[1] in a_bag:
@@ -146,6 +157,8 @@ class BinaryNotEqual:
         return True
 
     def is_final_permissible(self, solution):
+        global consistancy_checks
+        consistancy_checks += 1
         for a_bag in solution:
             if self.items[0] in a_bag:
                 if self.items[1] in a_bag:
@@ -163,6 +176,8 @@ class MutualInclusive:
         self.bags = bags
 
     def is_permissible(self, solution):
+        global consistancy_checks
+        consistancy_checks += 1
         for f_bag in solution:
             opp_i = 0
             opp_j = 0
@@ -192,7 +207,8 @@ class MutualInclusive:
         return True
 
     def is_final_permissible(self, solution):
-
+        global consistancy_checks
+        consistancy_checks += 1
         for a_f_bag in solution:
             for i in range(0, 1):
                 if self.items[i] in a_f_bag:
@@ -271,6 +287,8 @@ class Bag:
         self.items = []
 
     def is_permissible(self):
+        global consistancy_checks
+        consistancy_checks += 1
         check_weight = 0
         for an_item in self.items:
             check_weight += an_item.weight
@@ -281,6 +299,8 @@ class Bag:
             return False
 
     def is_final_permissible(self):
+        global consistancy_checks
+        consistancy_checks += 1
         check_weight = 0
         for an_item in self.items:
             check_weight += an_item.weight
@@ -587,7 +607,8 @@ def print_results(bags):
         print()
 
 
-
+# global consistancy_checks
+consistancy_checks = 0
 items = []
 items_letter = []
 bags = []
@@ -683,10 +704,12 @@ just_backtrack_file.close()
 
 if result:
     print_results(bags)
+    print("Consistancy checks: ", consistancy_checks)
 else:
     print("there is no possible solution for this problem")
 
 reset(bags, items)
+consistancy_checks = 0
 print("working on MRV_heuristic with degree heuristic")
 MRV_file = open("MRV_heuristic.txt", "w")
 
@@ -697,19 +720,22 @@ MRV_file.close()
 #a
 if mrv_result:
     print_results(bags)
+    print("Consistancy checks: ", consistancy_checks)
 else:
     print("there is no possible solution for this problem")
 
 reset(bags, items)
-print("working on LSV_heuristic with degree heuristic")
-LSV_file = open("LSV_heuristic.txt", "w")
+consistancy_checks = 0
+print("working on LCV_heuristic with degree heuristic")
+LCV_file = open("LCV_heuristic.txt", "w")
 
-lsv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals,
+lcv_result = backtracking_search(unary_inclusives, unary_exclusives, binary_equals, binary_not_equals,
                                  mutual_inclusives,
-                                 bags, items, "LSV", LSV_file)
-LSV_file.close()
+                                 bags, items, "LCV", LCV_file)
+LCV_file.close()
 
-if lsv_result:
+if lcv_result:
     print_results(bags)
+    print("Consistancy checks: ", consistancy_checks)
 else:
     print("there is no possible solution for this problem")
