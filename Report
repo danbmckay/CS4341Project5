@@ -31,8 +31,9 @@ Backtracking(failures, constraints, bags, items, a_file):
     if met:
         an answer was found and returns it
     if its not met:
-        selected item = select_item(a_heuristic) // chooses some item to put in a bag based on the heuristic chosen updates bags and items
-        
+        is_assigned = select_item(a_heuristic) // chooses some item to put in a bag based on the heuristic chosen updates bags and items
+        // select_item will return true if it placed an item or false if it failed to
+        is_assigned 
 
 
 
