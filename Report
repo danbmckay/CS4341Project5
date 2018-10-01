@@ -3,8 +3,38 @@ Manuel Gonsalves
 CS 4341 Project 5 Report
 How to run code:
 ./Project5.py [file name]
-This will run out code with the given input file, and produce the desired output.
+This will run out code with the given input file, and produce the desired output, and some .txt files so you can see how
+the algorithms came to the answers they did with their given heuristics.
+
 Approach:
+The way that we worked through this project was by making everything an object that kept track of certain things
+so Bags would be created and store how much weight they could carry, their letter and what items they currently had
+items would be created and store what they weighed, their letter, the number of constraints they were involved in and whether
+or not they had already been placed into a bag
+Then every constraint would be an object as well with the specific bags and or items were involved with them
+with the bags and items storing all the information it was very easy to check if a constraint was violated by passing the bags and items
+to each specific constraint and see if the constraint had been met
+the first step to solving the problem was to get backtracking working. the way we implemented back tracking was through
+recursion. we would take the first item we could grab and put it in the first bag that it could go into. When we came to an item
+that couldn't be placed we recorded what the previous state looked like so we wouldn't duplicate states and run into the same
+problems then went back up one step and choose the next item in the list. After backtracking was done we added the MRV heuristic
+and the degree heuristic for a tie break. The MRV heuristic chooses the item with the least amount of possible places it can go
+and places it into the first bag that it can put it into.
+
+failures = previous states that did not work
+constraints = all the constraints on the csp
+bags = the current bag objects
+items = the current items
+a_file = the file recording the solution
+Backtracking(failures, constraints, bags, items, a_file):
+    check if all final_constraints are met, the bag weights are met, and that every item is in a bag
+    if met:
+        an answer was found and returns it
+    if its not met:
+        selected item = select_item(a_heuristic) // chooses some item to put in a bag based on the heuristic chosen updates bags and items
+        
+
+
 
 Tests:
 
